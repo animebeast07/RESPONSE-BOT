@@ -1,14 +1,21 @@
-import openai
+import re, os, time
+id_pattern = re.compile(r'^.\d+$') 
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
 
-# Set your OpenAI API key
+
+class Config(object):
+    # pyro client config
+    API_ID    = os.environ.get("API_ID", "26169469")
+    API_HASH  = os.environ.get("API_HASH", "1e2225f3d65b401d7d5bb921af531712")
+    BOT_TOKEN = os.environ.get("BOT_TOKEN", "7734830076:AAGP4pqZC1nR1Q3NecBu8O-tG1EGYO-lBfI") 
+    import openai
+
 openai.api_key = 'YOUR_OPENAI_API_KEY'
 
-# Define a function that gets a response from GPT-3/4.
 def get_ai_response(user_input: str) -> str:
     try:
-        # Send the input to OpenAI's API and get the model's response
+        
         response = openai.Completion.create(
             model="text-davinci-003",  # or use "gpt-3.5-turbo" or "gpt-4" if available
             prompt=user_input,
@@ -18,43 +25,41 @@ def get_ai_response(user_input: str) -> str:
     except Exception as e:
         return f"Error communicating with AI: {e}"
 
-# Define a command handler for the /start command.
 def start(update: Update, context: CallbackContext) -> None:
     update.message.reply_text('Hello! I am your chatbot. Ask me anything!')
 
-# Define a message handler that will process user messages and send them to the AI.
 def ai_response(update: Update, context: CallbackContext) -> None:
     user_input = update.message.text  # Get the user input (text message)
     
-    # Get AI's response to the user's message
+    
     response = get_ai_response(user_input)
 
-    # Send the AI response back to the user
+ 
     update.message.reply_text(response)
 
-# Error handler (optional)
+
 def error(update: Update, context: CallbackContext) -> None:
     print(f"Update {update} caused error {context.error}")
 
 def main() -> None:
-    # Replace 'YOUR_BOT_TOKEN' with your actual bot token from BotFather
+    
     updater = Updater("YOUR_BOT_TOKEN")
 
     dispatcher = updater.dispatcher
 
-    # Add command handlers
+    
     dispatcher.add_handler(CommandHandler("start", start))
 
-    # Add message handler to process all text messages with AI
+    
     dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, ai_response))
 
     # Add error handler (optional)
     dispatcher.add_error_handler(error)
 
-    # Start the bot
+    
     updater.start_polling()
 
-    # Run the bot until you send a signal (e.g., Ctrl+C)
+    
     updater.idle()
 
 if __name__ == '__main__':
